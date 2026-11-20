@@ -1,21 +1,42 @@
-name: Run pytest # Gives the workflow a name, Run pytest. This name appears in the GitHub Actions page. PreviousNext
-on: push #Starts the workflow automatically whenever you push code to the GitHub repository. PreviousNext
+name: Run pytest # Gives the workflow a name, Run pytest. This name appears in the GitHub Actions page.
 
-jobs: 
+on:
+  push:
+    branches:
+      - main # Only run on pushes to main, avoiding repeated runs on every commit to feature/AI-dev branches.
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/**" # Only trigger when Python source code, tests, or workflow files change (skips docs/README edits).
+  pull_request:
+    branches:
+      - main # Automatically run tests when a pull request targets main to verify changes before merging.
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/**"
+
+# Cancel older in-progress workflow runs on the same branch/PR when new commits are pushed rapidly.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
   test:
-    runs-on: ubuntu-latest #Tells GitHub to use a virtual computer running Ubuntu (a Linux operating system) to perform the tests. PreviousNext
+    runs-on: ubuntu-latest # Tells GitHub to use a virtual computer running Ubuntu (a Linux operating system) to perform the tests.
 
-    steps: #Begins the list of instructions that the virtual computer must follow, in order. PreviousNext
-      - name: Checkout respository #label or comment
-        uses: actions/checkout@v4 #Downloads a copy of your GitHub repository onto the virtual computer so it can access your code. PreviousNext
-      
-      - name: Set up Python 
-        uses: actions/setup-python@v5 #set up python on virtual computer
+    steps: # Begins the list of instructions that the virtual computer must follow, in order.
+      - name: Checkout repository # Downloads a copy of your GitHub repository onto the virtual computer so it can access your code.
+        uses: actions/checkout@v4
+
+      - name: Set up Python # Sets up Python 3.12 and caches pip dependencies to speed up repeat runs.
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      
-      - name: Install pytest
-        run: pip install pytest #install pytest
-      
-      - name: Run pytest
-        run: python -m pytest tests/ #Rus pytest
+          cache: "pip"
+
+      - name: Install pytest # Installs pytest
+        run: pip install pytest
+
+      - name: Run pytest # Runs pytest
+        run: python -m pytest tests/
