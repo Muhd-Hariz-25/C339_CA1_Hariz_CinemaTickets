@@ -33,6 +33,7 @@ def test_ticket_price_with_negative_integer_raises_value_error():
     [
         2.5,
         "3",
+        "three"
     ],
 )
 # Call and run, this is a test for failure (See if it handles non INT type)
